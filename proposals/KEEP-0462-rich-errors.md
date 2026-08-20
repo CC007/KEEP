@@ -191,20 +191,21 @@ Here are some diagrams illustrating the type hierarchy and subtyping relationshi
 
 ```mermaid
 graph BT
-    Int["Int"] --> IntN["Int?"]
+    NothingN["Nothing?"] --> ValueN["Value?"]
+
     Int --> Value
-    IntN --> ValueN["Value?"]
 
-    ParseError["ParseError"] --> Error["Error"]
+    ParseError --> Error
 
-    Value --> Any["Any"]
+    Value --> Any
     Value --> ValueN
     Error --> Any
-    ValueN --> AnyQ["Any?"]
-    Any --> AnyQ
+    ValueN --> AnyN["Any?"]
+    Any --> AnyN
 
     Nothing --> ParseError
     Nothing --> Int
+    Nothing --> NothingN
 ```
 
 ```mermaid
@@ -215,7 +216,27 @@ graph BT
     ValueParse["Value | ParseError"]
     ValueNParse["Value? | ParseError"]
     IntError["Int | Error"]
-    AnyN["Any?"]
+    IntNError["Int? | Error"]
+    AnyN["Any? (Value? | Error)"]
+    Any["Any (Value | Error)"]
+    IntN["Int?"]
+    NothingN["Nothing?"]
+    ValueN["Value?"]
+    Nothing["Nothing"]
+
+    Nothing --> NothingN
+    Nothing --> Int
+    Nothing --> ParseError
+
+    NothingN --> IntN
+    Int --> IntN
+
+    IntN --> ValueN
+    IntN --> UnionN
+
+    ValueN --> ValueNParse
+
+    UnionN --> IntNError
     
     Int --> Union
     ParseError --> Union
@@ -232,8 +253,108 @@ graph BT
     ValueParse --> ValueNParse
     
     ValueNParse --> AnyN
+    IntNError --> AnyN
     Any --> AnyN
 ```
+Alternative if Value? = Value | Null
+
+```mermaid
+graph BT
+    Nothing["Nothing"]
+    NothingN["Nothing? (Nothing | Null)"]
+    Parse["ParseError"]
+    Int["Int"]
+    IntParse["Int | ParseError"]
+    IntN["Int? (Int | Null)"]
+    IntNParse["Int? | ParseError \n(Int | Null | ParseError)"]
+    IntError["Int | Error"]
+    Value["Value"]
+    ValueParse["Value | ParseError"]
+    ValueN["Value? (Value | Null)"]
+    ValueNParse["Value? | ParseError \n(Value | Null | ParseError)"]
+    Any["Any (Value | Error)"]
+
+    Nothing --> NothingN
+    Nothing --> Int
+    Nothing --> Parse
+
+    NothingN --> IntN
+
+    Parse --> IntParse
+
+    Int --> IntN
+    Int --> IntParse
+    Int --> Value
+
+    IntParse --> IntNParse
+    IntParse --> ValueParse
+
+    IntN --> IntNParse
+    IntN --> ValueN
+
+    IntNParse --> IntError
+    IntNParse --> ValueNParse
+
+    Value --> ValueN
+    Value --> ValueParse
+
+    ValueN --> ValueNParse
+    
+    ValueParse --> ValueNParse
+    
+    ValueNParse --> Any
+    IntError --> Any
+```
+Or for backwards compatibility:
+
+```mermaid
+graph BT
+    Nothing["Nothing"]
+    NothingN["Nothing? (Nothing | Null)"]
+    Parse["ParseError"]
+    Int["Int"]
+    IntParse["Int | ParseError"]
+    IntN["Int? (Int | Null)"]
+    IntNParse["Int? | ParseError \n(Int | Null | ParseError)"]
+    IntError["Int | Error"]
+    Any["Any"]
+    AnyParse["Any | ParseError"]
+    AnyN["Any? (Any | Null)"]
+    AnyNParse["Any? | ParseError \n(Any | Null | ParseError)"]
+    Object["Object (Any | Error)"]
+
+    Nothing --> NothingN
+    Nothing --> Int
+    Nothing --> Parse
+
+    NothingN --> IntN
+
+    Parse --> IntParse
+
+    Int --> IntN
+    Int --> IntParse
+    Int --> Any
+
+    IntParse --> IntNParse
+    IntParse --> AnyParse
+
+    IntN --> IntNParse
+    IntN --> AnyN
+
+    IntNParse --> IntError
+    IntNParse --> AnyNParse
+
+    Any --> AnyN
+    Any --> AnyParse
+
+    AnyN --> AnyNParse
+    
+    AnyParse --> AnyNParse
+    
+    AnyNParse --> Object
+    IntError --> Object
+```
+
 
 ##### Generic parameters
 
